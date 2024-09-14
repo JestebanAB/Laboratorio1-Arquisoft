@@ -14,53 +14,34 @@ public class FlightService {
     @Autowired
     private FlightRepository flightRepository;
 
-    public List<Flight> findFlights(LocalDate startDate, LocalDate endDate, String origin, String destination, Double minPrice,Double maxPrice, Integer minDuration, Integer maxDuration) {
-        // Generar una clave de combinación de parámetros para usar en el switch
-        String key = (origin != null ? "1" : "0") +
-                (destination != null ? "1" : "0") +
-                (minPrice != null ? "1" : "0")+
-                (maxPrice != null ? "1" : "0")+
-                (minDuration != null ? "1" : "0") +
-                (maxDuration != null ? "1" : "0");
-
-        switch (key) {
-
-            case "111111": // Todos los parámetros no son nulos
-                return flightRepository.findByDateBetweenAndDurationBetweenAndPriceGreaterThanEqualAndPriceLessThanEqual(
-                        startDate, endDate, minDuration, maxDuration, minPrice, maxPrice);
-            case "111110": // minDuration es nulo
-                return flightRepository.findByDateBetweenAndPriceGreaterThanEqualAndPriceLessThanEqual(
-                        startDate, endDate,     minPrice, maxPrice);
-            case "111": // origin, destination, maxPrice no son nulos
-                return flightRepository.findByDateBetweenAndOriginContainingIgnoreCaseAndDestinationContainingIgnoreCaseAndPriceLessThanEqual(
-                        startDate, endDate, origin, destination, maxPrice);
-
-            case "110": // origin, destination no son nulos, maxPrice es nulo
-                return flightRepository.findByDateBetweenAndOriginContainingIgnoreCaseAndDestinationContainingIgnoreCase(
-                        startDate, endDate, origin, destination);
-
-            case "101": // origin y maxPrice no son nulos, destination es nulo
-                return flightRepository.findByDateBetweenAndOriginContainingIgnoreCaseAndPriceLessThanEqual(
-                        startDate, endDate, origin, maxPrice);
-
-            case "011": // destination y maxPrice no son nulos, origin es nulo
-                return flightRepository.findByDateBetweenAndDestinationContainingIgnoreCaseAndPriceLessThanEqual(
-                        startDate, endDate, destination, maxPrice);
-
-            case "100": // solo origin no es nulo
-                return flightRepository.findByDateBetweenAndOriginContainingIgnoreCase(startDate, endDate, origin);
-
-            case "010": // solo destination no es nulo
-                return flightRepository.findByDateBetweenAndDestinationContainingIgnoreCase(startDate, endDate, destination);
-
-            case "001": // solo maxPrice no es nulo
-                return flightRepository.findByDateBetweenAndPriceLessThanEqual(startDate, endDate, maxPrice);
-
-            case "000000": // Todos los parámetros son nulos
-            default:
-                return flightRepository.findByDateBetween(startDate, endDate);
+    public List<Flight> findFlights(LocalDate startDate, LocalDate endDate, String origin, String destination, Double minPrice, Double maxPrice, Integer minDuration, Integer maxDuration) {
+        if (origin != null && destination != null && minPrice != null && maxPrice != null && minDuration != null && maxDuration != null) {
+            return flightRepository.findByDateBetweenAndDurationBetweenAndPriceGreaterThanEqualAndPriceLessThanEqual(
+                    startDate, endDate, minDuration, maxDuration, minPrice, maxPrice);
+        } else if (origin != null && destination != null && maxPrice != null) {
+            return flightRepository.findByDateBetweenAndOriginContainingIgnoreCaseAndDestinationContainingIgnoreCaseAndPriceLessThanEqual(
+                    startDate, endDate, origin, destination, maxPrice);
+        } else if (origin != null && destination != null) {
+            return flightRepository.findByDateBetweenAndOriginContainingIgnoreCaseAndDestinationContainingIgnoreCase(
+                    startDate, endDate, origin, destination);
+        } else if (origin != null && maxPrice != null) {
+            return flightRepository.findByDateBetweenAndOriginContainingIgnoreCaseAndPriceLessThanEqual(
+                    startDate, endDate, origin, maxPrice);
+        } else if (destination != null && maxPrice != null) {
+            return flightRepository.findByDateBetweenAndDestinationContainingIgnoreCaseAndPriceLessThanEqual(
+                    startDate, endDate, destination, maxPrice);
+        } else if (origin != null) {
+            return flightRepository.findByDateBetweenAndOriginContainingIgnoreCase(startDate, endDate, origin);
+        } else if (destination != null) {
+            return flightRepository.findByDateBetweenAndDestinationContainingIgnoreCase(startDate, endDate, destination);
+        } else if (maxPrice != null) {
+            return flightRepository.findByDateBetweenAndPriceLessThanEqual(startDate, endDate, maxPrice);
+        } else if (minPrice != null && maxPrice != null) {
+            return flightRepository.findByDateBetweenAndPriceGreaterThanEqualAndPriceLessThanEqual(startDate, endDate, minPrice, maxPrice);
+        } else if (minDuration != null && maxDuration != null) {
+            return flightRepository.findByDateBetweenAndDurationBetween(startDate, endDate, minDuration, maxDuration);
+        } else {
+            return flightRepository.findByDateBetween(startDate, endDate);
         }
     }
-
-
 }
